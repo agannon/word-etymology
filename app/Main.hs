@@ -28,6 +28,10 @@ import           Database.Persist.Sqlite hiding (get)
 import           Database.Persist.TH
 
 import           Lucid
+import           Data.List.Split
+import           Control.Monad.Reader
+
+import           Importers
 
 
 
@@ -43,12 +47,49 @@ Etymology json
   originExample Text
   branchLang Text
   branchExample Text
+  deriving Show
 |]
 
 
 type Api = SpockM SqlBackend () () ()
 
 type ApiAction a = SpockAction SqlBackend () () a
+
+f contents = tup
+  where
+    (header:body) = lines contents
+    body' = map init body
+    l = Prelude.head body'
+    s = splitOn "," l
+    tup = listToTuple8 s
+
+importData :: String -> IO String
+importData csvFilePath  = do
+  csvData <- readFile csvFilePath
+  return csvData
+
+parseData :: String -> [(Text, Int, Text, Text, Text, Text, Text, Text)]
+parseData contents = tupleList
+  where
+    (header:body) = lines contents
+    body' = map init body
+    tupleList = map (\x -> listToTuple8 $ splitOn "," x) body'
+
+asSqlBackendReader :: ReaderT SqlBackend m a -> ReaderT SqlBackend m a
+asSqlBackendReader = id
+
+uncurry8 func (a,b,c,d,e,f,g,h) = func a b c d e f g h
+
+
+listToTuple8 [a,b,c,d,e,f,g,h] = (pack a
+                                 ,read b :: Int
+                                 ,pack c
+                                 ,pack d
+                                 ,pack e
+                                 ,pack f
+                                 ,pack g
+                                 ,pack h)
+
 
 main :: IO ()
 main = do
@@ -116,3 +157,7 @@ pageTemplate x title = do
     head_ $
       title_ $ toHtml title
     body_ x
+
+
+
+
