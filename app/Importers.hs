@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Importers ( parseData,
-                  -- importData
+                   importData
                  )
   where
 
@@ -14,16 +14,16 @@ import Control.Monad.Reader
 import Data.Text (Text, pack)
 
 
-data Etymology = Etymology {
-  etymologyWord :: Text,
-  etymologyFrequencyRank :: Int,
-  etymologyLangPath :: Text,
-  etymologyLangBranch :: Text,
-  etymologyOriginLang :: Text,
-  etymologyOriginExample :: Text,
-  etymologyBranchLang :: Text,
-  etymologyBranchExample :: Text
-                           } deriving Show
+-- data Etymology = Etymology {
+--   etymologyWord :: Text,
+--   etymologyFrequencyRank :: Int,
+--   etymologyLangPath :: Text,
+--   etymologyLangBranch :: Text,
+--   etymologyOriginLang :: Text,
+--   etymologyOriginExample :: Text,
+--   etymologyBranchLang :: Text,
+--   etymologyBranchExample :: Text
+--                            } deriving Show
 
 
 parseData :: String -> [Etymology]
@@ -35,9 +35,9 @@ parseData contents = etymologies
     etymologies = map (uncurry8 Etymology) tupleList
 
 
--- importData :: [Etymology] -> String -> IO [Key Etymology]
--- importData etymologies dbPath = do
---   runSqlite (pack dbPath) . asSqlBackendReader $ forM etymologies insert
+importData :: [Etymology] -> String -> IO [Key Etymology]
+importData etymologies dbPath = do
+  runSqlite (pack dbPath) . asSqlBackendReader $ forM etymologies insert
 
 
 asSqlBackendReader :: ReaderT SqlBackend m a -> ReaderT SqlBackend m a

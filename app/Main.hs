@@ -31,12 +31,6 @@ import           Lucid
 import           Data.List.Split
 import           Control.Monad.Reader
 
-import           Importers
-
-
-
-
-
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Etymology json
   word Text
@@ -62,34 +56,6 @@ f contents = tup
     l = Prelude.head body'
     s = splitOn "," l
     tup = listToTuple8 s
-
-importData :: String -> IO String
-importData csvFilePath  = do
-  csvData <- readFile csvFilePath
-  return csvData
-
-parseData :: String -> [(Text, Int, Text, Text, Text, Text, Text, Text)]
-parseData contents = tupleList
-  where
-    (header:body) = lines contents
-    body' = map init body
-    tupleList = map (\x -> listToTuple8 $ splitOn "," x) body'
-
-asSqlBackendReader :: ReaderT SqlBackend m a -> ReaderT SqlBackend m a
-asSqlBackendReader = id
-
-uncurry8 func (a,b,c,d,e,f,g,h) = func a b c d e f g h
-
-
-listToTuple8 [a,b,c,d,e,f,g,h] = (pack a
-                                 ,read b :: Int
-                                 ,pack c
-                                 ,pack d
-                                 ,pack e
-                                 ,pack f
-                                 ,pack g
-                                 ,pack h)
-
 
 main :: IO ()
 main = do
@@ -159,5 +125,31 @@ pageTemplate x title = do
     body_ x
 
 
+-- IMPORTER FUNCTIONS
+parseData :: String -> [Etymology]
+parseData contents = etymologies
+  where
+    (header:body) = lines contents
+    body' = map init body
+    tupleList = map (\x -> listToTuple8 $ splitOn "," x) body'
+    etymologies = map (uncurry8 Etymology) tupleList
 
 
+importData :: [Etymology] -> String -> IO [Key Etymology]
+importData etymologies dbPath = do
+  runSqlite (pack dbPath) . asSqlBackendReader $ forM etymologies insert
+
+
+asSqlBackendReader :: ReaderT SqlBackend m a -> ReaderT SqlBackend m a
+asSqlBackendReader = id
+
+uncurry8 func (a,b,c,d,e,f,g,h) = func a b c d e f g h
+
+listToTuple8 [a,b,c,d,e,f,g,h] = (pack a
+                                 ,read b :: Int
+                                 ,pack c
+                                 ,pack d
+                                 ,pack e
+                                 ,pack f
+                                 ,pack g
+                                 ,pack h)
