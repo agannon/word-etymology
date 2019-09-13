@@ -27,7 +27,6 @@ import qualified Database.Persist        as P         -- We'll be using P.get la
 import           Database.Persist.Sqlite hiding (get)
 import           Database.Persist.TH
 
-import           Lucid
 import           Data.List.Split
 import           Control.Monad.Reader
 
@@ -49,30 +48,20 @@ type Api = SpockM SqlBackend () () ()
 
 type ApiAction a = SpockAction SqlBackend () () a
 
-f contents = tup
-  where
-    (header:body) = lines contents
-    body' = map init body
-    l = Prelude.head body'
-    s = splitOn "," l
-    tup = listToTuple8 s
-
 main :: IO ()
 main = do
   pool <- runStdoutLoggingT $ createSqlitePool "api.db" 5
   spockCfg <- defaultSpockCfg () (PCPool pool) ()
+  htmlString' <- readFile "views/home.html"
   runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool
-  runSpock 8080 (spock spockCfg app)
+  runSpock 8080 (spock spockCfg $ app $ pack htmlString')
 
-app :: Api
-app = do
+app :: Text -> Api
+app htmlFile = do
 
   -- below returns home page, which will be built out to show the Vue html
-  get "home" $
-    html . toStrict . renderText $ pageTemplate (do
-             h1_ "Large"
-             h6_ "small"
-             ) "page"
+  get "home" $ html $ htmlFile
+
 
   -- below returns one word of the specified id number
   get ("api" <//> "words" <//> var) $ \etymologyId -> do
@@ -116,16 +105,7 @@ errorJson code message =
     ]
 
 
-pageTemplate :: Monad m => HtmlT m a -> Text -> HtmlT m a
-pageTemplate x title = do
-  doctype_
-  html_ $ do
-    head_ $
-      title_ $ toHtml title
-    body_ x
-
-
--- IMPORTER FUNCTIONS
+-- IMPORT FUNCTIONS
 parseData :: String -> [Etymology]
 parseData contents = etymologies
   where
@@ -153,3 +133,4 @@ listToTuple8 [a,b,c,d,e,f,g,h] = (pack a
                                  ,pack f
                                  ,pack g
                                  ,pack h)
+
