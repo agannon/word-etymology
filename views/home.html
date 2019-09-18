@@ -9,23 +9,8 @@
 </div>
 
 <script>
-urlString = "http://localhost:8080/api/words/"
-urlString2 = "http://localhost:8080/api/words?blang=%german%"
-
-let xhr = new XMLHttpRequest()
-xhr.open("GET", urlString, true)
-xhr.onload = function(e) {
-  if (xhr.readyState === 4) {
-    if (xhr.status === 200) {
-      let j = JSON.parse(xhr.response)
-      app.apiResponse = (j)
-    }
-  }
-}
-xhr.onerror = function(e) {
-  console.error(xhr.statusText)
-}
-xhr.send(null)
+//urlString = "http://localhost:8080/api/words/"
+//urlString2 = "http://localhost:8080/api/words?blang=%german%"
 
 var app = new Vue({
   el: "#app",
@@ -36,6 +21,23 @@ var app = new Vue({
     keyword: "originLang"
   },
   methods: {
+    getApiCall: function(urlString) {
+      let xhr = new XMLHttpRequest()
+      xhr.open("GET", urlString, true)
+      xhr.onload = function(e) {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            let j =  JSON.parse(xhr.response)
+            Vue.set(app, "apiResponse", j)
+          }
+        }
+      }
+      xhr.onerror = function(e) {
+        console.error(xhr.statusText)
+      }
+      xhr.send(null)
+
+    },
     getCount: function(lookup, json) {
       mapping = json.map(x => x[lookup])
       lookupSet = new Set(mapping)
@@ -51,7 +53,7 @@ var app = new Vue({
       return dataFormat
     },
     sortData: function(data) {
-        return data.sort(function(a,b){return b.y-a.y})
+      return data.sort(function(a, b) {return b.y - a.y})
     }
   },
   computed: {
