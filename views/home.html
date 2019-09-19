@@ -6,19 +6,71 @@
 
   <div id="container"
        style="min-width: 310px; max-width: 600px; height: 400px; margin: 0 auto"></div>
+
+  <label for="key">Display</label>
+  <select id="key" v-model="keyword">
+    <option v-for="option in displayOptions" v-bind:value="option.value">
+      {{ option.text }}
+    </option>
+  </select>
+
+  <label for="filter">Filter By</label>
+  <select id="filter" v-model="chosenFilter">
+    <option v-for="option in filterTypes" v-bind:value="option.value">
+      {{ option.text }}
+    </option>
+  </select>
+  <div v-if="chosenFilter.length > 0">
+    <label for="param">Filter Parameter</label>
+    <select id="param" v-model="chosenLookup">
+      <option v-for="option in filterOptions[chosenFilter]" v-bind:value="option">
+        {{ option }}
+      </option>
+    </select>
+  </div>
 </div>
 
 <script>
-//urlString = "http://localhost:8080/api/words/"
+//initialUrlString = "http://localhost:8080/api/words/"
 //urlString2 = "http://localhost:8080/api/words?blang=%german%"
 
 var app = new Vue({
   el: "#app",
   data: {
     message: "Hello Vue!",
+    initialUrlString: "http://localhost:8080/api/words/",
     apiResponse: [],
     series: "",
-    keyword: "originLang"
+    keyword: "originLang",
+    displayOptions: [
+      { text: "Origin Language", value: "originLang" },
+      { text: "Origin Language Branch", value: "langBranch" }
+    ],
+    chosenFilter: "",
+    filterTypes: [
+      { text: "None", value: "" },
+      { text: "Origin Language", value: "originLang" },
+      { text: "Origin Language Branch", value: "langBranch" },
+      { text: "Path to English", value: "langPath" }
+    ],
+    chosenLookup: "",
+    filterOptions: {
+      "originLang": [
+        "Dutch", "English", "French", "German", "Latin", "Norse", "Yiddish"
+      ],
+      "langBranch": [
+        "Germanic", "Hellenic", "Indo-Iranian", "Italic", "Semitic"
+      ],
+      "langPath": [
+        "Arabic", "Dutch", "Frankish", "French", "Frisian",
+        "Gallic", "German", "Greek", "Italian", "Latin", "Norse", "Persian",
+        "Sanskrit", "Scandinavian"
+      ]
+    }
+
+  },
+  mounted: function() {
+    this.getApiCall(this.initialUrlString)
   },
   methods: {
     getApiCall: function(urlString) {
@@ -27,7 +79,7 @@ var app = new Vue({
       xhr.onload = function(e) {
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
-            let j =  JSON.parse(xhr.response)
+            let j = JSON.parse(xhr.response)
             Vue.set(app, "apiResponse", j)
           }
         }
@@ -54,6 +106,17 @@ var app = new Vue({
     },
     sortData: function(data) {
       return data.sort(function(a, b) {return b.y - a.y})
+    },
+    getApiQuery: function() {
+      let baseString = "http://localhost:8080/api/words"
+      let newString = ""
+      if (this.chosenFilter && this.chosenLookup) {
+        newString = baseString + "?" + this.chosenFilter +
+        "=%" + this.chosenLookup + "%"
+        return newString
+      } else {
+        return baseString + "/"
+      }
     }
   },
   computed: {
@@ -65,6 +128,13 @@ var app = new Vue({
     apiResponse: function(val) {
       c = Highcharts.charts[0]
       c.series[0].setData(this.setData)
+    },
+    keyword: function(val) {
+      c = Highcharts.charts[0]
+      c.series[0].setData(this.setData)
+    },
+    chosenLookup: function(val) {
+      this.getApiCall(this.getApiQuery())
     }
   }
 

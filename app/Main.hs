@@ -48,6 +48,7 @@ type Api = SpockM SqlBackend () () ()
 
 type ApiAction a = SpockAction SqlBackend () () a
 
+
 main :: IO ()
 main = do
   pool <- runStdoutLoggingT $ createSqlitePool "api.db" 5
@@ -77,13 +78,13 @@ app htmlFile = do
     let fil = case length ps of
                 0 -> []
                 _ -> case (Prelude.head (map fst ps)) of
-                       "branch" -> [Filter EtymologyLangBranch
+                       "langBranch" -> [Filter EtymologyLangBranch
                                     (Left (Prelude.head (map snd ps))) (BackendSpecificFilter "LIKE")]
-                       "origin" -> [Filter EtymologyOriginLang
+                       "originLang" -> [Filter EtymologyOriginLang
                                     (Left (Prelude.head (map snd ps))) (BackendSpecificFilter "LIKE")]
-                       "path" -> [Filter EtymologyLangPath
+                       "langPath" -> [Filter EtymologyLangPath
                                     (Left (Prelude.head (map snd ps))) (BackendSpecificFilter "LIKE")]
-                       "blang" -> [Filter EtymologyBranchLang
+                       "branchlang" -> [Filter EtymologyBranchLang
                                     (Left (Prelude.head (map snd ps))) (BackendSpecificFilter "LIKE")]
                        _ -> []
     filteredWords <- runSQL $ selectList fil [Asc EtymologyFrequencyRank]
