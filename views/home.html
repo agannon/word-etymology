@@ -28,11 +28,44 @@
       </option>
     </select>
   </div>
+
+  <lang-table v-bind:words="apiResponse">
+  </lang-table>
 </div>
 
 <script>
 //initialUrlString = "http://localhost:8080/api/words/"
 //urlString2 = "http://localhost:8080/api/words?blang=%german%"
+
+Vue.component("lang-table", {
+  props: ["words"],
+  template: `
+  <div class="lang-table">
+  <h3>Word Information</h3>
+  <table>
+  <th>Frequency Rank</th>
+  <th>Word</th>
+  <th>Origin Language</th>
+  <th>Origin Language Example</th>
+  <th>Origin Language Branch</th>
+  <th>Origin Branch Language</th>
+  <th>Branch Language Example</th>
+  <th>Path to English</th>
+  <tr v-for="entry in words">
+  <td>{{ entry.frequencyRank }}</td>
+  <td>{{ entry.word }}</td>
+    <td>{{ entry.originLang }}</td>
+  <td>{{ entry.originExample }}</td>
+  <td>{{ entry.langBranch }}</td>
+  <td>{{ entry.branchLang }}</td>
+  <td>{{ entry.branchExample }}</td>
+  <td>{{ entry.langPath }}</td>
+
+</tr>
+</table>
+  </div>
+  `
+})
 
 var app = new Vue({
   el: "#app",
@@ -112,7 +145,7 @@ var app = new Vue({
       let newString = ""
       if (this.chosenFilter && this.chosenLookup) {
         newString = baseString + "?" + this.chosenFilter +
-        "=%" + this.chosenLookup + "%"
+          "=%" + this.chosenLookup + "%"
         return newString
       } else {
         return baseString + "/"
