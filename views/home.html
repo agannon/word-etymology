@@ -1,7 +1,20 @@
+<!--
+Dependency licenses:
+Vue.js: MIT License
+Highcharts: Personal use license to the email address associated with @agannon
+!-->
+
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://code.highcharts.com/modules/export-data.js"></script>
+
+<style>
+table th {
+  border-right: solid gray
+}
+
+</style>
 <div id="app">
 
   <div id="container"
@@ -34,15 +47,17 @@
 </div>
 
 <script>
-//initialUrlString = "http://localhost:8080/api/words/"
-//urlString2 = "http://localhost:8080/api/words?blang=%german%"
 
 Vue.component("lang-table", {
   props: ["words"],
   template: `
   <div class="lang-table">
   <h3>Word Information</h3>
-  <table>
+    <p>
+  <button onclick="app.prevPage()">Previous</button>
+  <button onclick="app.nextPage()">Next</button>
+  </p>
+  <table style="text-align:center">
   <th onclick="app.sort('frequencyRank')">Frequency Rank</th>
   <th onclick="app.sort('word')">Word</th>
   <th onclick="app.sort('originLang')">Origin Language</th>
@@ -63,6 +78,7 @@ Vue.component("lang-table", {
 
 </tr>
 </table>
+
   </div>
   `
 })
@@ -101,7 +117,9 @@ var app = new Vue({
       ]
     },
     currentSort: "frequencyRank",
-    currentSortDir: "asc"
+    currentSortDir: "asc",
+    pageSize: 25,
+    pageNumber: 1
 
   },
   mounted: function() {
@@ -158,6 +176,16 @@ var app = new Vue({
         this.currentSortDir = this.currentSortDir === "asc" ? "desc" : "asc"
       }
       this.currentSort = sortable
+    },
+    nextPage: function() {
+      if ((this.pageNumber * this.pageSize) < this.apiResponse.length) {
+        this.pageNumber++
+      }
+    },
+    prevPage: function() {
+      if (this.pageNumber > 1) {
+        this.pageNumber--
+      }
     }
   },
   computed: {
@@ -178,6 +206,10 @@ var app = new Vue({
           if (a[this.currentSort].toLowerCase() > b[this.currentSort].toLowerCase()) {return compare}
           return 0
         }
+      }).filter((row, index) => {
+        let start = (this.pageNumber - 1) * this.pageSize
+        let end = this.pageNumber * this.pageSize
+        if (index >= start && index < end) return true
       })
     }
   },
@@ -216,6 +248,7 @@ Highcharts.chart("container", {
       }
     }
   },
+  exporting: false,
   series: series = [{
     name: "",
     colorByPoint: true,
@@ -224,4 +257,6 @@ Highcharts.chart("container", {
   }]
 })
 </script>
+
+
 
